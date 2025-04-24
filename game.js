@@ -171,6 +171,51 @@ function layEgg() {
     newEggMesh.position.copy(spawnPosition);
     newEggMesh.rotation.set(Math.random() * Math.PI * 2, Math.random() * Math.PI * 2, Math.random() * Math.PI * 2); // 随机旋转
 
+    // --- 检查与地面上其他鸡蛋的碰撞，并尝试重新定位 ---
+    const eggDiameter = 0.3; // 假设鸡蛋直径为 0.3 (根据模型调整)
+    const maxSpawnAttempts = 5; // 最多尝试5次寻找不碰撞的位置
+    let collisionDetected = false;
+    let attempts = 0;
+
+    while (attempts < maxSpawnAttempts) {
+        collisionDetected = false;
+        for (const existingEgg of activeEggs) {
+            if (existingEgg.onGround) {
+                const distance = new THREE.Vector2(existingEgg.mesh.position.x, existingEgg.mesh.position.z)
+                    .distanceTo(new THREE.Vector2(spawnPosition.x, spawnPosition.z));
+                if (distance < eggDiameter) {
+                    collisionDetected = true;
+                    console.log(`Attempt ${attempts + 1}: Egg spawn position overlaps. Retrying...`);
+                    break; // 找到一个重叠就足够了
+                }
+            }
+        }
+
+        if (!collisionDetected) {
+            console.log(`Found a suitable position after ${attempts + 1} attempts.`);
+            break; // 找到合适位置，跳出循环
+        }
+
+        attempts++;
+        if (attempts < maxSpawnAttempts) {
+            // 重新随机生成位置 (在小鸡当前位置附近小范围随机)
+            const randomOffsetX = (Math.random() - 0.7) * 0.5; // 调整随机范围
+            const randomOffsetZ = (Math.random() - 0.5) * 0.5;
+            spawnPosition.x = chickenModel.position.x + randomOffsetX;
+            spawnPosition.z = chickenModel.position.z + randomOffsetZ;
+            spawnPosition.y = chickenModel.position.y - 0.2; // 保持在小鸡下方
+            newEggMesh.position.copy(spawnPosition);
+        } else {
+            console.log("Failed to find a non-overlapping position after maximum attempts. Skipping lay.");
+            return; // 达到最大尝试次数，放弃下蛋
+        }
+    }
+
+    // 如果循环结束仍然碰撞 (理论上不会到这里，因为上面有 return)，则不添加鸡蛋
+    if (collisionDetected && attempts >= maxSpawnAttempts) {
+        return;
+    }
+
     // --- 物理模拟 ---
     // === 选项 A: 手动模拟简单下落 ===
     const eggData = {
@@ -223,7 +268,7 @@ function layEgg() {
     }
 
     // 2. 在目标中心点周围的更小圆形区域内随机生成位置
-    const randomRadius = Math.random() * 1.0 + 0.2; // 半径在 0.2 到 1.2 之间 (进一步缩小范围)
+    const randomRadius = Math.random() * 3 + 0.2; // 半径在 0.2 到 1.2 之间 (进一步缩小范围)
     const randomAngle = Math.random() * Math.PI * 2;
 
     const offsetX = Math.cos(randomAngle) * randomRadius;
