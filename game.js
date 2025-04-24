@@ -66,12 +66,35 @@ function init() {
     // 加载模型
     loadModels();
 
+    // 初始化鸡蛋计数器显示
+    updateEggCounterDisplay();
+
     // 添加事件监听
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('click', onClick); // 或者使用 'pointerdown'
 
     // 开始动画循环
     animate();
+}
+
+ const currentTime = new Date().toLocaleString();  // 使用日期作为 key，例如 '2025-04-24'
+ 
+function updateEggCounterDisplay() {
+  
+    let eggHistory = JSON.parse(localStorage.getItem('eggHistory') || '{}');  // 改为对象 { 'key': count }
+    if (!eggHistory[currentTime]) {
+        eggHistory[currentTime] = 0;  // 如果 key 不存在，初始化为 0
+    }
+    eggHistory[currentTime] += 1;  // 累加当天的 count
+    localStorage.setItem('eggHistory', JSON.stringify(eggHistory));
+    
+    let historyKeys = Object.keys(eggHistory).sort().reverse();  // 获取键并倒序排序
+    let historyDisplay = '';
+    for (const key of historyKeys) {
+        historyDisplay += `<p>${key}: ${eggHistory[key]}</p>`;
+    }
+    document.getElementById('eggCounter').innerText = `当前下蛋数量: ${eggHistory[currentTime]}`;
+    document.getElementById('eggHistoryDisplay').innerHTML = historyDisplay;  // 倒序展示历史
 }
 
 // --- 物理引擎初始化 (示例: Cannon.js) ---
@@ -158,6 +181,10 @@ function onClick(event) {
 
 // --- 下蛋逻辑 ---
 function layEgg() {
+    // 更新逻辑已移至 updateEggCounterDisplay
+    
+    updateEggCounterDisplay();  // 调用现有的函数
+    
     if (!eggTemplateMesh || !chickenModel) {
         console.warn("Egg template or chicken model not ready.");
         return;

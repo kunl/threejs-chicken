@@ -12,14 +12,23 @@
             top: 10px;
             width: 100%;
             text-align: center;
-            color: white;
+            
             font-family: sans-serif;
             z-index: 100;
+        }
+        #eggCounter, #eggHistoryDisplay {
+            position: absolute;
+            left: 0;
+            padding-bottom: 10px;
+            color: white;
         }
     </style>
 </head>
 <body>
-    <div id="info">点击小鸡让它下蛋</div>
+    <div id="info">Click the chicken to make it lay an egg - 点击小鸡让它下蛋</div>
+    <div id="eggCounter">Eggs laid: 0 (历史: 0)</div>
+   
+    <div id="eggHistoryDisplay">Eggs laid: 0 (历史: 0)</div>
     <script type="importmap">
         {
             "imports": {
