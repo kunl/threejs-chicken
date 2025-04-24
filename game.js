@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { createChickenModel } from './chickenModel.js';
+import { createEggTemplate } from './eggModel.js';
 // 引入物理引擎 (示例使用 Cannon.js, 你也可以选择其他的或手动模拟)
 // import * as CANNON from 'cannon-es'; // 如果使用 Cannon.js
 
@@ -113,25 +115,17 @@ function createGround() {
 
 // --- 加载模型 ---
 function loadModels() {
-    // 创建小鸡模型（用立方体表示）
-    const chickenGeometry = new THREE.BoxGeometry(0.6, 0.6, 0.6);
-    const chickenMaterial = new THREE.MeshStandardMaterial({ color: 0xffe066 }); // 黄色
-    chickenModel = new THREE.Mesh(chickenGeometry, chickenMaterial);
-    chickenModel.position.set(0, 0.5, 0);
-    chickenModel.castShadow = true;
+    // 从外部文件创建小鸡模型
+    chickenModel = createChickenModel();
     scene.add(chickenModel);
 
-    // 创建鸡蛋模板（用球体表示）
-    const eggGeometry = new THREE.SphereGeometry(0.1, 24, 24);
-    const eggMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff }); // 白色
-    eggTemplateMesh = new THREE.Mesh(eggGeometry, eggMaterial);
-    eggTemplateMesh.castShadow = true;
-    // 不直接添加到场景，作为模板
+    // 从外部文件创建鸡蛋模板
+    eggTemplateMesh = createEggTemplate();
 
     // 标记模型已加载
     loadedModels["chicken"] = chickenModel;
     loadedModels["egg"] = eggTemplateMesh;
-    console.log("Simple models created.");
+    console.log("Models loaded from external files.");
 }
 
 // --- 处理点击事件 ---
