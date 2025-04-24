@@ -53,18 +53,35 @@ export function createChickenModel() {
     // 翅膀 (扁平椭球或自定义形状 - 这里用扁球体简化)
     const wingGeometry = new THREE.SphereGeometry(0.3, 32, 16);
     wingGeometry.scale(1, 0.5, 1.2); // 压扁并拉长
+
+    // 创建翅膀枢轴
+    const leftWingPivot = new THREE.Group();
+    const rightWingPivot = new THREE.Group();
+
+    // 设置枢轴位置 (原翅膀位置)
+    leftWingPivot.position.set(-0.4 * 1.2, 0, 0);
+    rightWingPivot.position.set(0.4 * 1.2, 0, 0);
+
+    // 将枢轴添加到模型
+    chickenModel.add(leftWingPivot);
+    chickenModel.add(rightWingPivot);
+
+    // 创建翅膀模型
     const leftWingMesh = new THREE.Mesh(wingGeometry, wingMaterial);
-    // 调整位置以适应新的身体形状 (更宽)
-    leftWingMesh.position.set(-0.4 * 1.2, 0, 0);
+    leftWingMesh.position.set(0, 0, 0); // 相对于枢轴的位置
     leftWingMesh.rotation.z = Math.PI / 6; // 稍微倾斜
     leftWingMesh.castShadow = true;
-    chickenModel.add(leftWingMesh);
+    leftWingPivot.add(leftWingMesh); // 将翅膀添加到枢轴
+
     const rightWingMesh = leftWingMesh.clone();
-    // 调整位置以适应新的身体形状 (更宽)
-    rightWingMesh.position.set(0.4 * 1.2, 0, 0);
+    rightWingMesh.position.set(0, 0, 0); // 相对于枢轴的位置
     rightWingMesh.rotation.z = -Math.PI / 6;
     rightWingMesh.castShadow = true;
-    chickenModel.add(rightWingMesh);
+    rightWingPivot.add(rightWingMesh); // 将翅膀添加到枢轴
+
+    // 将翅膀枢轴引用存储在 userData 中
+    chickenModel.userData.leftWingPivot = leftWingPivot;
+    chickenModel.userData.rightWingPivot = rightWingPivot;
 
     // 尾巴 (圆锥体)
     const tailGeometry = new THREE.ConeGeometry(0.15, 0.3, 8);

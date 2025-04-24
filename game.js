@@ -12,6 +12,11 @@ let clock = new THREE.Clock();
 let chickenModel, eggTemplateMesh; // 小鸡模型引用和鸡蛋模板
 const loadedModels = {}; // 存储加载的模型
 const activeEggs = []; // 存储场景中的活动鸡蛋及其物理体
+let isFlapping = false;
+let flappingStartTime = 0;
+const flappingDuration = 3; // 挥动翅膀持续时间 (秒)
+const flappingSpeed = 10; // 挥动速度
+const flappingAngle = Math.PI / 4; // 挥动最大角度
 
 // --- 物理世界 (如果使用物理引擎) ---
 // let world;
@@ -226,6 +231,19 @@ function layEgg() {
     activeEggs.push(eggData);
     scene.add(newEggMesh);
 
+    // 触发挥动翅膀动画
+    isFlapping = true;
+    flappingStartTime = clock.getElapsedTime();
+    // 重置翅膀初始角度 (可选，如果希望每次都从静止开始)
+    if (chickenModel.userData.leftWingPivot && chickenModel.userData.rightWingPivot) {
+        chickenModel.userData.leftWingPivot.rotation.z = 0;
+        chickenModel.userData.rightWingPivot.rotation.z = 0;
+    }
+    if (chickenModel.userData.leftWingPivot && chickenModel.userData.rightWingPivot) {
+        chickenModel.userData.leftWingPivot.rotation.z = Math.PI / 6; // 恢复初始倾斜
+        chickenModel.userData.rightWingPivot.rotation.z = -Math.PI / 6; // 恢复初始倾斜
+    }
+
     // === 选项 B: 使用物理引擎 (示例: Cannon.js) ===
     /*
     // 创建鸡蛋物理体
@@ -241,6 +259,15 @@ function layEgg() {
     // 存储 Mesh 和 Body 的对应关系
     activeEggs.push({ mesh: newEggMesh, body: eggBody });
     scene.add(newEggMesh);
+
+    // 触发挥动翅膀动画
+    isFlapping = true;
+    flappingStartTime = clock.getElapsedTime();
+    // 重置翅膀初始角度 (可选，如果希望每次都从静止开始)
+    if (chickenModel.userData.leftWingPivot && chickenModel.userData.rightWingPivot) {
+        chickenModel.userData.leftWingPivot.rotation.z = Math.PI / 6; // 恢复初始倾斜
+        chickenModel.userData.rightWingPivot.rotation.z = -Math.PI / 6; // 恢复初始倾斜
+    }
     */
 
     // (可选) 播放音效
@@ -298,6 +325,23 @@ function animate() {
 
     // 更新控制器
     controls.update();
+
+    // --- 更新小鸡翅膀动画 ---
+    if (isFlapping && chickenModel && chickenModel.userData.leftWingPivot && chickenModel.userData.rightWingPivot) {
+        const elapsedTime = clock.getElapsedTime() - flappingStartTime;
+        if (elapsedTime < flappingDuration) {
+            // 使用 sin 函数创建上下摆动效果
+            const angle = Math.sin(elapsedTime * flappingSpeed) * flappingAngle;
+            // 应用旋转 (围绕 Z 轴)
+            chickenModel.userData.leftWingPivot.rotation.z = angle; // 直接设置枢轴旋转角度
+            chickenModel.userData.rightWingPivot.rotation.z = -angle; // 直接设置枢轴旋转角度
+        } else {
+            // 动画结束，恢复初始姿态
+            isFlapping = false;
+            chickenModel.userData.leftWingPivot.rotation.z = 0;
+            chickenModel.userData.rightWingPivot.rotation.z = 0;
+        }
+    }
 
     // --- 更新物理世界 (如果使用) ---
     // world.step(timeStep, deltaTime);
