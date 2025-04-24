@@ -51,8 +51,8 @@ export function createChickenModel() {
     chickenModel.add(rightLegMesh);
 
     // 翅膀 (扁平椭球或自定义形状 - 这里用扁球体简化)
-    const wingGeometry = new THREE.SphereGeometry(0.3, 32, 16);
-    wingGeometry.scale(1, 0.5, 1.2); // 压扁并拉长
+    const wingGeometry = new THREE.SphereGeometry(0.3, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2); // 创建半球形状
+    wingGeometry.scale(1, 0.6, 1.0); // 调整缩放以增加厚度并减少宽度，避免穿模
 
     // 创建翅膀枢轴
     const leftWingPivot = new THREE.Group();
@@ -68,13 +68,13 @@ export function createChickenModel() {
 
     // 创建翅膀模型
     const leftWingMesh = new THREE.Mesh(wingGeometry, wingMaterial);
-    leftWingMesh.position.set(0, 0, 0); // 相对于枢轴的位置
+    leftWingMesh.position.set(0, 0, 0); // 调整为对称位置
     leftWingMesh.rotation.z = Math.PI / 6; // 稍微倾斜
     leftWingMesh.castShadow = true;
     leftWingPivot.add(leftWingMesh); // 将翅膀添加到枢轴
 
     const rightWingMesh = leftWingMesh.clone();
-    rightWingMesh.position.set(0, 0, 0); // 相对于枢轴的位置
+    rightWingMesh.position.set(0, 0, 0); // 调整为对称位置
     rightWingMesh.rotation.z = -Math.PI / 6;
     rightWingMesh.castShadow = true;
     rightWingPivot.add(rightWingMesh); // 将翅膀添加到枢轴
@@ -93,7 +93,7 @@ export function createChickenModel() {
     chickenModel.add(tailMesh);
 
     // 设置整个模型的位置和阴影
-    chickenModel.position.set(0, 0.5, 0); // 调整Y轴使腿接触地面
+    chickenModel.position.set(0, 0.6, 0); // 增加 Y 位置以避免穿透地面
     chickenModel.castShadow = true; // Group本身不投射阴影，但其子对象可以
     chickenModel.traverse((child) => { // 确保所有子对象都投射阴影
         if (child.isMesh) {

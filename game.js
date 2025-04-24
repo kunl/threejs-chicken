@@ -162,87 +162,28 @@ function layEgg() {
         console.warn("Egg template or chicken model not ready.");
         return;
     }
-
     console.log("Laying egg...");
-
-    // 1. 克隆鸡蛋模型
     const newEggMesh = eggTemplateMesh.clone();
-
-    // 2. 设置初始位置 (在小鸡下方或后方一点)
     const spawnPosition = chickenModel.position.clone();
-    spawnPosition.y -= 0.2; // 稍微低一点
-    // 可以加一点随机偏移 
+    spawnPosition.y -= 0.2;
     spawnPosition.x += (Math.random() - 0.5) * 0.1;
     newEggMesh.position.copy(spawnPosition);
-    newEggMesh.rotation.set(Math.random() * Math.PI * 2, Math.random() * Math.PI * 2, Math.random() * Math.PI * 2); // 随机旋转
-
-    // --- 检查与地面上其他鸡蛋的碰撞，并尝试重新定位 ---
-    const eggDiameter = 0.3; // 假设鸡蛋直径为 0.3 (根据模型调整)
-    const maxSpawnAttempts = 5; // 最多尝试5次寻找不碰撞的位置
-    let collisionDetected = false;
-    let attempts = 0;
-
-    while (attempts < maxSpawnAttempts) {
-        collisionDetected = false;
-        for (const existingEgg of activeEggs) {
-            if (existingEgg.onGround) {
-                const distance = new THREE.Vector2(existingEgg.mesh.position.x, existingEgg.mesh.position.z)
-                    .distanceTo(new THREE.Vector2(spawnPosition.x, spawnPosition.z));
-                if (distance < eggDiameter) {
-                    collisionDetected = true;
-                    console.log(`Attempt ${attempts + 1}: Egg spawn position overlaps. Retrying...`);
-                    break; // 找到一个重叠就足够了
-                }
-            }
-        }
-
-        if (!collisionDetected) {
-            console.log(`Found a suitable position after ${attempts + 1} attempts.`);
-            break; // 找到合适位置，跳出循环
-        }
-
-        attempts++;
-        if (attempts < maxSpawnAttempts) {
-            // 重新随机生成位置 (在小鸡当前位置附近小范围随机)
-            const randomOffsetX = (Math.random() - 0.7) * 0.5; // 调整随机范围
-            const randomOffsetZ = (Math.random() - 0.5) * 0.5;
-            spawnPosition.x = chickenModel.position.x + randomOffsetX;
-            spawnPosition.z = chickenModel.position.z + randomOffsetZ;
-            spawnPosition.y = chickenModel.position.y - 0.2; // 保持在小鸡下方
-            newEggMesh.position.copy(spawnPosition);
-        } else {
-            console.log("Failed to find a non-overlapping position after maximum attempts. Skipping lay.");
-            return; // 达到最大尝试次数，放弃下蛋
-        }
-    }
-
-    // 如果循环结束仍然碰撞 (理论上不会到这里，因为上面有 return)，则不添加鸡蛋
-    if (collisionDetected && attempts >= maxSpawnAttempts) {
-        return;
-    }
-
-    // --- 物理模拟 ---
-    // === 选项 A: 手动模拟简单下落 ===
+    newEggMesh.rotation.set(Math.random() * Math.PI * 2, Math.random() * Math.PI * 2, Math.random() * Math.PI * 2);
     const eggData = {
         mesh: newEggMesh,
-        velocity: new THREE.Vector3(0, -0.1, 0), // 初始向下速度
+        velocity: new THREE.Vector3(0, -0.1, 0),
         onGround: false
     };
     activeEggs.push(eggData);
     scene.add(newEggMesh);
-
-    // 触发挥动翅膀动画
     isFlapping = true;
     flappingStartTime = clock.getElapsedTime();
-    // 重置翅膀初始角度 (可选，如果希望每次都从静止开始)
     if (chickenModel.userData.leftWingPivot && chickenModel.userData.rightWingPivot) {
         chickenModel.userData.leftWingPivot.rotation.z = 0;
         chickenModel.userData.rightWingPivot.rotation.z = 0;
     }
-    if (chickenModel.userData.leftWingPivot && chickenModel.userData.rightWingPivot) {
-        chickenModel.userData.leftWingPivot.rotation.z = Math.PI / 6; // 恢复初始倾斜
-        chickenModel.userData.rightWingPivot.rotation.z = -Math.PI / 6; // 恢复初始倾斜
-    }
+
+    // 移除多余的闭括号
 
     // === 选项 B: 使用物理引擎 (示例: Cannon.js) ===
     /*
@@ -331,7 +272,7 @@ function animate() {
         const elapsedTime = clock.getElapsedTime() - flappingStartTime;
         if (elapsedTime < flappingDuration) {
             // 使用 sin 函数创建上下摆动效果
-            const angle = Math.sin(elapsedTime * flappingSpeed) * flappingAngle;
+            const angle = Math.sin(elapsedTime * flappingSpeed) * (flappingAngle * 0.8); // 减少角度以避免穿模
             // 应用旋转 (围绕 Z 轴)
             chickenModel.userData.leftWingPivot.rotation.z = angle; // 直接设置枢轴旋转角度
             chickenModel.userData.rightWingPivot.rotation.z = -angle; // 直接设置枢轴旋转角度
